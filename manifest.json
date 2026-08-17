@@ -1,6 +1,6 @@
 {
-  "name": "SUI 감시기",
-  "short_name": "SUI",
+  "name": "C-Watcher-SUI",
+  "short_name": "C-Watcher-SUI",
   "description": "SUI가 쌀 때 사고 비쌀 때 파는 신호 감시기",
   "start_url": "./",
   "scope": "./",

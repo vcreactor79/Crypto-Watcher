@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SUI 감시기 · 쌀 때 사고 비쌀 때 팔기</title>
+<title>C-Watcher-SUI · 쌀 때 사고 비쌀 때 팔기</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0E1116">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -11,14 +11,14 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="SUI 감시기">
+<meta name="apple-mobile-web-app-title" content="C-Watcher-SUI">
 <script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('./sw.js').catch(function(){});});}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{--bg:#0E1116;--surface:#161B22;--elev:#1C222B;--border:#262D38;--text:#E6EAF0;--muted:#8791A0;--faint:#5B6470;
     --bull:#35D07F;--bear:#FF5C77;--accent:#6C8CFF;--gold:#FFC24B;--warn:#FF9F45;--buy:#38BDF8;--fire:#FF7847;
-    --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;--ui:'Space Grotesk',system-ui,'Malgun Gothic',sans-serif;}
+    --mono:'Noto Sans KR',system-ui,sans-serif;--ui:'Noto Sans KR',system-ui,'Malgun Gothic',sans-serif;}
   *{box-sizing:border-box}
   html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--ui);-webkit-font-smoothing:antialiased}
   body{padding:18px 16px 60px;max-width:820px;margin:0 auto}
@@ -86,7 +86,7 @@
 </style>
 </head>
 <body>
-  <header class="top"><h1>SUI 감시기</h1><span class="tag">BINANCE · 일봉</span></header>
+  <header class="top"><h1>C-Watcher-SUI</h1><span class="tag">BINANCE · 일봉</span></header>
   <p class="sub">SUI가 <b>자기 가격 범위에서 쌀 때 사고 비쌀 때 파는</b> 것만 봅니다. 판단 기준은 내 평단이 아니라 시장 가격. 조건이 되면 브라우저 알림을 보내고, 매매는 성건님이 직접.</p>
 
   <div class="status" id="status">데이터 불러오는 중…</div>
@@ -226,7 +226,7 @@ $('#alertBtn').onclick=async()=>{
   if(p==='granted'){$('#alertBtn').classList.add('on');$('#alertBtn').textContent='🔔 알림 켜짐';$('#alertInfo').textContent='매수/익절 신호로 바뀌면 알림이 옵니다. 탭을 열어두세요(5분마다 자동 확인).';}
   else $('#alertInfo').textContent='알림이 차단됐습니다. 브라우저 설정에서 허용해 주세요.';
 };
-$('#testBtn').onclick=()=>{if(Notification&&Notification.permission==='granted')new Notification('SUI 감시기',{body:'테스트 알림입니다. 정상 동작 중.'});else $('#alertInfo').textContent='먼저 "알림 켜기"를 눌러 권한을 허용하세요.';};
+$('#testBtn').onclick=()=>{if(Notification&&Notification.permission==='granted')new Notification('C-Watcher-SUI',{body:'테스트 알림입니다. 정상 동작 중.'});else $('#alertInfo').textContent='먼저 "알림 켜기"를 눌러 권한을 허용하세요.';};
 ['inW','inBuy','inSell'].forEach(id=>$('#'+id).oninput=runBacktest);
 
 load();

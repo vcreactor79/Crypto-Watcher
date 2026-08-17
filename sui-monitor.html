@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SUI 매집·익절 모니터</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0E1116;--surface:#161B22;--elev:#1C222B;--border:#262D38;--text:#E6EAF0;--muted:#8791A0;--faint:#5B6470;
+    --bull:#35D07F;--bear:#FF5C77;--accent:#6C8CFF;--match:#FFC24B;--warn:#FF9F45;--buy:#38BDF8;
+    --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;--ui:'Space Grotesk',system-ui,'Malgun Gothic',sans-serif;}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--ui);-webkit-font-smoothing:antialiased}
+  body{padding:18px 16px 60px;max-width:940px;margin:0 auto}
+  header.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:4px}
+  header.top h1{font-size:20px;font-weight:700;letter-spacing:-.02em;margin:0}
+  header.top .tag{font-family:var(--mono);font-size:11px;color:var(--accent);border:1px solid var(--border);padding:2px 7px;border-radius:5px}
+  .sub{color:var(--muted);font-size:12.5px;margin:2px 0 14px;line-height:1.5}
+
+  .pricebar{display:flex;gap:18px;flex-wrap:wrap;align-items:baseline;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:12px}
+  .pricebar .big{font-family:var(--mono);font-size:26px;font-weight:600}
+  .pricebar .chg{font-family:var(--mono);font-size:14px}
+  .pricebar .metric{font-size:12px;color:var(--muted)}
+  .pricebar .metric b{font-family:var(--mono);color:var(--text);font-weight:600;font-size:13px}
+  .refresh{margin-left:auto;font-family:var(--ui);font-size:12px;font-weight:600;color:var(--accent);background:transparent;border:1px solid var(--border);padding:7px 12px;border-radius:8px;cursor:pointer;align-self:center}
+
+  .inputs{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px}
+  .fld{display:flex;flex-direction:column;gap:5px}
+  .fld label{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);font-weight:600}
+  .fld input,.fld select{font-family:var(--mono);font-size:13px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;width:100%}
+  .fld input:focus,.fld select:focus{outline:none;border-color:var(--accent)}
+  .fld .hint{font-size:10px;color:var(--faint);font-family:var(--ui)}
+
+  .hero{border-radius:14px;padding:18px 20px;margin-bottom:16px;border:1px solid var(--border)}
+  .hero.buy{background:linear-gradient(135deg,rgba(56,189,248,.14),rgba(56,189,248,.04));border-color:rgba(56,189,248,.4)}
+  .hero.sell{background:linear-gradient(135deg,rgba(53,208,127,.14),rgba(53,208,127,.04));border-color:rgba(53,208,127,.4)}
+  .hero.wait{background:var(--surface)}
+  .hero .lab{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--faint);font-weight:600;margin-bottom:6px}
+  .hero .act{font-size:24px;font-weight:700;letter-spacing:-.02em;margin-bottom:6px}
+  .hero.buy .act{color:var(--buy)} .hero.sell .act{color:var(--bull)}
+  .hero .desc{font-size:13px;color:var(--text);line-height:1.55}
+  .hero .desc b{font-family:var(--mono)}
+  .caution{margin-top:10px;font-size:12px;line-height:1.5;color:#FFD3A6;background:rgba(255,159,69,.1);border:1px solid rgba(255,159,69,.3);border-radius:8px;padding:9px 11px}
+
+  h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--faint);margin:20px 0 10px;font-weight:600;display:flex;align-items:center;gap:8px}
+  h3.sec .note{text-transform:none;letter-spacing:0;font-weight:400;color:var(--faint);font-size:11px}
+  .tablewrap{overflow-x:auto;border:1px solid var(--border);border-radius:11px;background:var(--surface)}
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:560px}
+  thead th{background:var(--elev);color:var(--faint);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;text-align:right;padding:10px 12px;white-space:nowrap;border-bottom:1px solid var(--border)}
+  thead th:first-child,tbody td:first-child{text-align:left}
+  tbody td{text-align:right;padding:11px 12px;border-bottom:1px solid var(--border);font-family:var(--mono);white-space:nowrap;font-variant-numeric:tabular-nums}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr.here td{background:rgba(108,140,255,.09)}
+  tbody tr.free td{background:rgba(255,194,75,.09)}
+  .lv{font-family:var(--ui);font-weight:600}
+  .pos{color:var(--bull)} .neg{color:var(--bear)} .mut{color:var(--muted)} .buyc{color:var(--buy)} .goldc{color:var(--match)}
+  .badge{font-family:var(--ui);font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;margin-left:6px}
+  .badge.here{background:rgba(108,140,255,.18);color:var(--accent)}
+  .badge.free{background:rgba(255,194,75,.18);color:var(--match)}
+  .capbar{margin-top:8px;font-size:12px;color:var(--muted)}
+  .capbar b{font-family:var(--mono);color:var(--text)}
+  .capbar.over{color:var(--bear)}
+
+  .banner{border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:13px;display:none}
+  .banner.warn{display:block;background:rgba(255,92,119,.08);border:1px solid rgba(255,92,119,.35);color:#FFB3C0}
+  footer{margin-top:22px;color:var(--faint);font-size:11px;line-height:1.6;border-top:1px solid var(--border);padding-top:12px}
+  .status{font-family:var(--mono);font-size:12px;color:var(--muted);margin-bottom:8px}
+</style>
+</head>
+<body>
+  <header class="top"><h1>SUI 매집·익절 모니터</h1><span class="tag">BINANCE · SUIUSDT · 일봉</span></header>
+  <p class="sub">평단·보유량만 넣으면 <b>지금 매집/대기/익절</b> 신호와 다음 매수가·익절 라인·원금 회수 지점이 뜹니다. 보수적 매집(−25%마다) + 큰 파동 익절(+50/100/150%) 기본값. 손절 대신 <b>투입 상한 + 원금 회수</b>로 리스크를 관리합니다.</p>
+
+  <div class="status" id="status">데이터 불러오는 중…</div>
+  <div class="banner" id="banner"></div>
+
+  <div class="pricebar" id="pricebar" style="display:none">
+    <div><div class="metric" style="margin-bottom:2px">현재가 (USDT)</div><span class="big" id="price">–</span> <span class="chg" id="chg"></span></div>
+    <div class="metric">RSI(14)<br><b id="rsi">–</b></div>
+    <div class="metric">일변동성(ATR)<br><b id="atr">–</b></div>
+    <div class="metric">EMA200 대비<br><b id="e200">–</b></div>
+    <div class="metric">전고점 대비<br><b id="ddh">–</b></div>
+    <div class="metric">전저점(180일) 대비<br><b id="plow">–</b></div>
+    <button class="refresh" id="refresh">↻ 새로고침</button>
+  </div>
+
+  <div class="inputs">
+    <div class="fld"><label>내 평단</label><input id="avg" type="number" step="any" placeholder="예: 2.85"><span class="hint">보유 통화 기준</span></div>
+    <div class="fld"><label>보유 수량</label><input id="qty" type="number" step="any" placeholder="예: 1000"></div>
+    <div class="fld"><label>회차당 추가매수 금액</label><input id="addamt" type="number" step="any" placeholder="예: 500000"></div>
+    <div class="fld"><label>종목당 투입 상한</label><input id="cap" type="number" step="any" placeholder="예: 3000000"><span class="hint">무한 물타기 차단선</span></div>
+    <div class="fld"><label>현재가 수동입력 (선택)</label><input id="mprice" type="number" step="any" placeholder="KRW 보유 시 입력"><span class="hint">비우면 바이낸스 USDT 사용</span></div>
+    <div class="fld"><label>매집 간격 %</label><input id="step" type="number" step="any" value="25"></div>
+    <div class="fld"><label>익절 라인 % (쉼표)</label><input id="tps" type="text" value="50, 100, 150"></div>
+    <div class="fld"><label>익절 회차별 매도 %</label><input id="sells" type="text" value="33, 33, 34"></div>
+  </div>
+
+  <div id="out"></div>
+
+  <footer id="foot">
+    지표(RSI·ATR·지지)는 바이낸스 SUIUSDT 일봉으로 계산되며 통화와 무관하게 정확합니다. 매집·익절 가격은 입력한 평단 기준으로 계산되니, 평단과 현재가는 <b>같은 통화</b>여야 합니다(업비트 KRW 보유 시 현재가를 직접 입력).
+    이 도구는 매수·매도 시점을 규칙으로 계산할 뿐 수익을 보장하지 않습니다. 손절 없는 매집은 종목이 회복하지 못하면 손실이 무한정 커질 수 있어, 투입 상한과 "잃어도 되는 자금" 원칙이 유일한 방어선입니다. 레버리지와 병행하지 마세요.
+  </footer>
+
+<script>
+function sma(v,p){const o=Array(v.length).fill(null);let s=0;for(let i=0;i<v.length;i++){s+=v[i];if(i>=p)s-=v[i-p];if(i>=p-1)o[i]=s/p;}return o;}
+function ema(v,p){const o=Array(v.length).fill(null);const k=2/(p+1);let pr=null;for(let i=0;i<v.length;i++){if(pr==null){if(i>=p-1){let s=0;for(let j=i-p+1;j<=i;j++)s+=v[j];pr=s/p;o[i]=pr;}}else{pr=v[i]*k+pr*(1-k);o[i]=pr;}}return o;}
+function rsi(v,p=14){const o=Array(v.length).fill(null);if(v.length<=p)return o;let g=0,l=0;for(let i=1;i<=p;i++){const c=v[i]-v[i-1];if(c>=0)g+=c;else l-=c;}let ag=g/p,al=l/p;o[p]=al===0?100:100-100/(1+ag/al);for(let i=p+1;i<v.length;i++){const c=v[i]-v[i-1];const gi=c>0?c:0,li=c<0?-c:0;ag=(ag*(p-1)+gi)/p;al=(al*(p-1)+li)/p;o[i]=al===0?100:100-100/(1+ag/al);}return o;}
+function atr(hi,lo,c,p=14){const tr=[];for(let i=0;i<c.length;i++){if(i===0){tr.push(hi[i]-lo[i]);continue;}tr.push(Math.max(hi[i]-lo[i],Math.abs(hi[i]-c[i-1]),Math.abs(lo[i]-c[i-1])));}const o=Array(c.length).fill(null);let a=null;for(let i=0;i<c.length;i++){if(i<p){if(i===p-1){let s=0;for(let j=0;j<p;j++)s+=tr[j];a=s/p;o[i]=a;}}else{a=(a*(p-1)+tr[i])/p;o[i]=a;}}return o;}
+
+const $=s=>document.querySelector(s);
+let ctx=null;
+function fnum(v,d=2){return v>=1?v.toLocaleString('en-US',{maximumFractionDigits:d}):v.toPrecision(4);}
+
+async function load(){
+  const stt=$('#status'),ban=$('#banner');ban.className='banner';
+  stt.textContent='바이낸스에서 SUI 일봉 불러오는 중…';
+  let raw;
+  try{const r=await fetch('https://api.binance.com/api/v3/klines?symbol=SUIUSDT&interval=1d&limit=1000');if(!r.ok)throw 0;raw=await r.json();}
+  catch(e){ban.className='banner warn';ban.innerHTML='바이낸스에서 SUI 데이터를 받지 못했습니다. 네트워크/지역 제한을 확인하세요.';stt.textContent='';return;}
+  const cd=raw.map(k=>({open:+k[1],high:+k[2],low:+k[3],close:+k[4],volume:+k[5]}));
+  const c=cd.map(x=>x.close),hi=cd.map(x=>x.high),lo=cd.map(x=>x.low),n=c.length,L=n-1;
+  const r=rsi(c,14),a=atr(hi,lo,c,14),e50=ema(c,50),e200=ema(c,200);
+  const high=Math.max(...hi),prevLow=Math.min(...lo.slice(Math.max(0,L-179),L+1));
+  let dr=0;for(let i=Math.max(0,L-29);i<=L;i++)dr+=(hi[i]-lo[i])/c[i];dr/=Math.min(30,n);
+  ctx={price:c[L],prevClose:c[L-1],rsi:r[L],atr:a[L],atrPct:a[L]/c[L]*100,e200:e200[L],e50:e50[L],
+    distE200:e200[L]?(c[L]/e200[L]-1)*100:null,high,ddFromHigh:(c[L]/high-1)*100,prevLow,distPrevLow:(c[L]/prevLow-1)*100,avgRangePct:dr*100};
+  const chg=(c[L]/c[L-1]-1)*100;
+  $('#price').textContent=fnum(ctx.price,4);
+  $('#chg').textContent=(chg>0?'+':'')+chg.toFixed(2)+'%';$('#chg').className='chg '+(chg>0?'pos':chg<0?'neg':'mut');
+  $('#rsi').textContent=ctx.rsi.toFixed(1);$('#rsi').className=ctx.rsi>=70?'neg':ctx.rsi<=30?'pos':'';
+  $('#atr').textContent=ctx.atrPct.toFixed(1)+'%';
+  $('#e200').textContent=ctx.distE200==null?'–':(ctx.distE200>0?'+':'')+ctx.distE200.toFixed(0)+'%';$('#e200').className=ctx.distE200>0?'pos':'neg';
+  $('#ddh').textContent=ctx.ddFromHigh.toFixed(0)+'%';$('#ddh').className='neg';
+  $('#plow').textContent=(ctx.distPrevLow>0?'+':'')+ctx.distPrevLow.toFixed(0)+'%';
+  $('#pricebar').style.display='flex';
+  stt.textContent='SUI 일평균 변동 '+ctx.avgRangePct.toFixed(1)+'% · 전고점 대비 '+ctx.ddFromHigh.toFixed(0)+'% · '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})+' 기준';
+  render();
+}
+
+function parseList(s){return s.split(',').map(x=>parseFloat(x.trim())).filter(x=>!isNaN(x));}
+
+function render(){
+  if(!ctx)return;
+  const avg=parseFloat($('#avg').value),qty=parseFloat($('#qty').value);
+  const addAmt=parseFloat($('#addamt').value)||0, cap=parseFloat($('#cap').value)||0;
+  const mprice=parseFloat($('#mprice').value);
+  const price=!isNaN(mprice)?mprice:ctx.price;
+  const step=parseFloat($('#step').value)||25;
+  const tps=parseList($('#tps').value), sells=parseList($('#sells').value);
+  const out=$('#out');
+  if(isNaN(avg)||isNaN(qty)){out.innerHTML='<div class="hero wait"><div class="lab">입력 대기</div><div class="act" style="color:var(--muted);font-size:18px">평단과 보유 수량을 입력하세요</div><div class="desc">입력하면 지금 매집/익절 신호와 가격 라인이 계산됩니다.</div></div>';return;}
+
+  const cost0=avg*qty;
+  const pnlPct=(price/avg-1)*100;
+
+  // DCA ladder
+  const dca=[];let dq=qty,dc=cost0,dp=avg;
+  for(let k=1;k<=3;k++){dp=dp*(1-step/100);const aq=addAmt/dp;dq+=aq;dc+=addAmt;dca.push({k,price:dp,addQty:aq,newAvg:dc/dq,totalCost:dc,totalQty:dq});}
+  // TP ladder + free ride
+  const tp=[];let rem=qty,proc=0,freeAt=null;
+  for(let i=0;i<tps.length;i++){const pr=avg*(1+tps[i]/100);const frac=(sells[i]||0)/100;const sq=qty*frac;rem-=sq;const got=sq*pr;proc+=got;if(freeAt==null&&proc>=cost0)freeAt=tps[i];tp.push({pct:tps[i],price:pr,sellQty:sq,got,cum:proc,rem,remVal:rem*pr});}
+
+  // status
+  const dca1=dca[0].price, tp1=tp.length?tp[0].price:Infinity;
+  let cls,act,desc,caution='';
+  if(price>=tp1){
+    let band=tp[0];for(const t of tp)if(price>=t.price)band=t;
+    cls='sell';act='익절 구간';
+    desc=`현재가가 평단 대비 <b>+${pnlPct.toFixed(0)}%</b>. <b>+${band.pct}%</b> 라인 도달 — 계획대로 분할 매도 검토.`;
+    if(freeAt!=null&&price>=avg*(1+freeAt/100))desc+=` 이미 <b class="goldc">원금 회수(+${freeAt}%)</b> 구간을 넘겨 잔여 물량은 사실상 공짜입니다.`;
+  }else if(price<=dca1){
+    let lv=1;for(let k=0;k<dca.length;k++)if(price<=dca[k].price)lv=k+1;
+    cls='buy';act='매집 구간';
+    const target=dca[Math.min(lv-1,dca.length-1)];
+    desc=`현재가가 평단 대비 <b>${pnlPct.toFixed(0)}%</b>. <b>${lv}차 매집(−${(step*lv).toFixed(0)}% 부근)</b> 자리 — 계획된 금액만 분할 매수. 매수 시 평단 약 <b>${fnum(target.newAvg,4)}</b>.`;
+    // falling knife caution
+    if(ctx.distE200<0 && ctx.rsi>35 && ctx.distPrevLow<8){
+      caution='⚠ 장기추세선(EMA200) 아래 + 전저점 근처인데 아직 반등 신호(RSI 30↓ 반등)는 없습니다. 하락이 이어질 수 있으니 한 번에 담지 말고, 전저점 지지 확인 후 분할하세요.';
+    }else if(ctx.rsi<=30){caution='과매도(RSI '+ctx.rsi.toFixed(0)+') 구간 — 반등 가능성 있는 매집 자리이나, 지지 이탈 시 추가 하락 주의.';}
+  }else{
+    cls='wait';act='대기';
+    const toBuy=(price/dca1-1)*100, toSell=(tp1/price-1)*100;
+    desc=`현재가가 평단 대비 <b>${pnlPct.toFixed(0)}%</b>. 매집·익절 조건 모두 미충족. <b>다음 매집까지 ${toBuy>0?'−':''}${Math.abs(toBuy).toFixed(0)}%</b>, <b>첫 익절까지 +${toSell.toFixed(0)}%</b>.`;
+  }
+
+  // cap check
+  const planned=dca[dca.length-1].totalCost;
+  let capHtml='';
+  if(cap>0){const over=planned>cap;capHtml=`<div class="capbar ${over?'over':''}">3차까지 누적 투입 <b>${fnum(planned,0)}</b> / 상한 <b>${fnum(cap,0)}</b> ${over?'— ⚠ 상한 초과, 매집 횟수·금액 줄이세요':'('+((planned/cap)*100).toFixed(0)+'%)'}</div>`;}
+
+  out.innerHTML=`
+    <div class="hero ${cls}"><div class="lab">지금 행동</div><div class="act">${act}</div><div class="desc">${desc}</div>${caution?`<div class="caution">${caution}</div>`:''}</div>
+
+    <h3 class="sec">현재 포지션</h3>
+    <div class="tablewrap"><table><thead><tr><th>평단</th><th>보유수량</th><th>매입원가</th><th>현재평가</th><th>평가손익</th></tr></thead>
+    <tbody><tr><td class="lv" style="font-family:var(--mono)">${fnum(avg,4)}</td><td>${fnum(qty,0)}</td><td>${fnum(cost0,0)}</td><td>${fnum(qty*price,0)}</td>
+    <td class="${pnlPct>=0?'pos':'neg'}">${pnlPct>=0?'+':''}${fnum(qty*price-cost0,0)} (${pnlPct>=0?'+':''}${pnlPct.toFixed(1)}%)</td></tr></tbody></table></div>
+
+    <h3 class="sec">분할 매집 플랜 <span class="note">−${step}%마다 · 회차당 ${fnum(addAmt,0)} 매수</span></h3>
+    <div class="tablewrap"><table><thead><tr><th>회차</th><th>매수가</th><th>매수수량</th><th>신규 평단</th><th>누적 투입</th><th>누적 수량</th></tr></thead><tbody>
+    ${(()=>{let activeK=0;for(const d of dca)if(price<=d.price)activeK=d.k;return dca.map(d=>`<tr class="${d.k===activeK?'here':''}"><td class="lv buyc">${d.k}차${d.k===activeK?'<span class="badge here">현재</span>':''}</td><td class="buyc">${fnum(d.price,4)}</td><td>${addAmt>0?fnum(d.addQty,0):'–'}</td><td>${addAmt>0?fnum(d.newAvg,4):'–'}</td><td>${fnum(d.totalCost,0)}</td><td>${fnum(d.totalQty,0)}</td></tr>`).join('')})()}
+    </tbody></table></div>${capHtml}
+
+    <h3 class="sec">분할 익절 플랜 <span class="note">평단 기준 +% · 원금 회수 지점 강조</span></h3>
+    <div class="tablewrap"><table><thead><tr><th>익절 라인</th><th>매도가</th><th>매도수량</th><th>회수금액</th><th>누적 회수</th><th>잔여 수량</th></tr></thead><tbody>
+    ${tp.map(t=>`<tr class="${freeAt!=null&&t.pct===freeAt?'free':''}"><td class="lv"><span class="pos">+${t.pct}%</span>${freeAt!=null&&t.pct===freeAt?'<span class="badge free">원금회수</span>':''}</td><td class="pos">${fnum(t.price,4)}</td><td>${fnum(t.sellQty,0)}</td><td>${fnum(t.got,0)}</td><td class="${t.cum>=cost0?'goldc':''}">${fnum(t.cum,0)}</td><td>${fnum(t.rem,0)}</td></tr>`).join('')}
+    </tbody></table></div>
+    <div class="capbar">${freeAt!=null?`<b class="goldc">+${freeAt}%</b> 도달 시 누적 회수액이 매입원가(<b>${fnum(cost0,0)}</b>)를 넘겨 <b>원금을 전부 회수</b>합니다. 이후 잔여 물량은 공짜로 파동을 태우는 구간.`:'설정한 익절 라인·매도비율로는 원금 전액 회수가 안 됩니다. 매도 비율을 높이거나 익절 라인을 조정하세요.'}</div>
+  `;
+}
+
+$('#refresh').onclick=load;
+['avg','qty','addamt','cap','mprice','step','tps','sells'].forEach(id=>$('#'+id).oninput=render);
+load();
+</script>
+</body>
+</html>

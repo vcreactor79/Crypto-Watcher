@@ -1,0 +1,41 @@
+name: SUI Alert
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'   # 30분마다 (GitHub 부하에 따라 수 분 지연될 수 있음 — 스윙엔 충분)
+  workflow_dispatch:          # 버튼으로 수동 실행도 가능
+
+permissions:
+  contents: write             # state.json 커밋용
+
+concurrency:
+  group: sui-alert
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run watcher
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: node watcher.js
+
+      - name: Persist state
+        run: |
+          if [[ -n "$(git status --porcelain state.json)" ]]; then
+            git config user.name "sui-bot"
+            git config user.email "actions@users.noreply.github.com"
+            git add state.json
+            git commit -m "update state [skip ci]"
+            git push
+          else
+            echo "상태 변화 없음 — 커밋 생략"
+          fi

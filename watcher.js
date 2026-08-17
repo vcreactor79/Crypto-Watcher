@@ -28,7 +28,7 @@ function signal(SUI,BTC){
 
 // ---------- 데이터 ----------
 async function klines(sym){
-  const r=await fetch(`https://api.binance.com/api/v3/klines?symbol=${sym}&interval=1d&limit=1000`);
+  const r=await fetch(`https://data-api.binance.vision/api/v3/klines?symbol=${sym}&interval=1d&limit=1000`);
   if(!r.ok)throw new Error(sym+' HTTP '+r.status);
   return (await r.json()).map(k=>({open:+k[1],high:+k[2],low:+k[3],close:+k[4]}));
 }
